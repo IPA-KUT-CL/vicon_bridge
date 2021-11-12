@@ -23,7 +23,7 @@
 // SOFTWARE.
 //////////////////////////////////////////////////////////////////////////////////
 
-#include <ViconDataStreamSDK_CPP/DataStreamClient.h>
+#include "../vicon_sdk/DataStream/ViconDataStreamSDK_CPP/DataStreamClient.h"
 
 #include <cassert>
 #include <chrono>

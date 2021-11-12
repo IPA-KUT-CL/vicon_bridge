@@ -43,13 +43,14 @@
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <vicon_bridge/viconGrabPose.h>
 #include <vicon_bridge/Markers.h>
 #include <vicon_bridge/Marker.h>
 #include <vicon_bridge/viconCalibrateSegment.h>
 
 // Vicon
-#include <ViconDataStreamSDK_CPP/DataStreamClient.h>
+#include "../vicon_sdk/DataStream/ViconDataStreamSDK_CPP/DataStreamClient.h"
 
 #include <diagnostic_updater/diagnostic_updater.h>
 #include <diagnostic_updater/update_functions.h>
@@ -337,7 +338,9 @@ private:
 
     if(publish_tf_)
     {
-      spub.pub = nh.advertise<geometry_msgs::TransformStamped>(tracked_frame_suffix_ + "/" + subject_name + "/"
+      // spub.pub = nh.advertise<geometry_msgs::TransformStamped>(tracked_frame_suffix_ + "/" + subject_name + "/"
+      //                                                                                                       + segment_name, 10);
+      spub.pub = nh.advertise<geometry_msgs::PoseStamped>(tracked_frame_suffix_ + "/" + subject_name + "/"
                                                                                                             + segment_name, 10);
     }
     // try to get zero pose from parameter server
@@ -452,6 +455,20 @@ private:
     }
   }
 
+  void msgAdapter(geometry_msgs::TransformStamped::Ptr& posemsgPtr, 
+  geometry_msgs::PoseStamped::Ptr& stampedPosemsgPtr){
+    stampedPosemsgPtr->pose.position.x = posemsgPtr->transform.translation.x;
+    stampedPosemsgPtr->pose.position.y = posemsgPtr->transform.translation.y;
+    stampedPosemsgPtr->pose.position.z = posemsgPtr->transform.translation.z;
+
+    stampedPosemsgPtr->pose.orientation.w = posemsgPtr->transform.rotation.w;
+    stampedPosemsgPtr->pose.orientation.x = posemsgPtr->transform.rotation.x;
+    stampedPosemsgPtr->pose.orientation.y = posemsgPtr->transform.rotation.y;
+    stampedPosemsgPtr->pose.orientation.z = posemsgPtr->transform.rotation.z;
+
+    stampedPosemsgPtr->header = posemsgPtr->header;
+  }
+
   void process_subjects(const ros::Time& frame_time)
   {
     string tracked_frame, subject_name, segment_name;
@@ -460,16 +477,19 @@ private:
     tf::Transform transform;
     std::vector<tf::StampedTransform, std::allocator<tf::StampedTransform> > transforms;
     geometry_msgs::TransformStampedPtr pose_msg(new geometry_msgs::TransformStamped);
+    // define message of type PoseStamped
+    geometry_msgs::PoseStampedPtr stampedPose_msg(new geometry_msgs::PoseStamped);
     static unsigned int cnt = 0;
 
     for (unsigned int i_subjects = 0; i_subjects < n_subjects; i_subjects++)
     {
-
+      // get subject name from vicon client
       subject_name = vicon_client_.GetSubjectName(i_subjects).SubjectName;
       unsigned int n_segments = vicon_client_.GetSegmentCount(subject_name).SegmentCount;
 
       for (unsigned int i_segments = 0; i_segments < n_segments; i_segments++)
       {
+        // get segmentName from vicon_client
         segment_name = vicon_client_.GetSegmentName(subject_name, i_segments).SegmentName;
 
         Output_GetSegmentGlobalTranslation trans = vicon_client_.GetSegmentGlobalTranslation(subject_name, segment_name);
@@ -507,7 +527,8 @@ private:
                   if(publish_tf_)
                   {
                     tf::transformStampedTFToMsg(transforms.back(), *pose_msg);
-                    seg.pub.publish(pose_msg);
+                    msgAdapter(pose_msg, stampedPose_msg);
+                    seg.pub.publish(stampedPose_msg);
                   }
                 }
               }
