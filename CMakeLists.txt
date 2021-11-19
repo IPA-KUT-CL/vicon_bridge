@@ -40,8 +40,8 @@ catkin_package(CATKIN_DEPENDS
     roscpp 
 )
 
-list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/vicon_sdk/")
-list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/vicon_sdk/DataStream")
+# list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/vicon_sdk/")
+# list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/vicon_sdk/DataStream")
 
 include_directories(
     ${catkin_INCLUDE_DIRS}
