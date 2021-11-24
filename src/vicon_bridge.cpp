@@ -42,6 +42,7 @@
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <vicon_bridge/viconGrabPose.h>
@@ -166,6 +167,8 @@ private:
   string tracked_frame_suffix_;
   // Publisher
   ros::Publisher marker_pub_;
+  // TODO: publisher indicating topics are ready
+  ros::Publisher ready_pub_;
   // TF Broadcaster
   tf::TransformBroadcaster tf_broadcaster_;
   //geometry_msgs::PoseStamped vicon_pose;
@@ -282,6 +285,8 @@ private:
 
     ros::Duration d(1);
     Result::Enum result(Result::Unknown);
+
+    //ready_pub_ = nh.advertise<std_msgs::Bool>("/vicon/ready",10);
 
     while (!vicon_client_.IsConnected().Connected)
     {
